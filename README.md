@@ -1,1 +1,78 @@
-# inkernity-server
+# Inkternity Server
+
+> Self-hosted WebRTC signaling and TURN infrastructure for the [Inkternity](https://github.com/zynx/inkternity) live-collaboration and live-distribution model.
+
+## What this repo is
+
+The two stock pieces Inkternity needs to run a P2P session over WebRTC, packaged as a single deployable stack:
+
+- **Signaling server** — a small Python WebSocket relay that brokers WebRTC offer/answer/ICE-candidate exchange between peers. Speaks the protocol Inkternity's bundled `libdatachannel` client expects.
+- **TURN server** — stock [`coturn`](https://github.com/coturn/coturn). Used as a fallback when direct peer-to-peer NAT traversal fails.
+- **nginx** — TLS termination for the WSS signaling endpoint (Let's Encrypt via certbot).
+
+Drop-in replacement for `wss://signalserver.infinipaint.com:8000` and `turn.infinipaint.com:3478`. Also the foundation HEAVYMETA's Inkternity Phase 0 distribution model deploys (see `infinipaint/docs/design/DISTRIBUTION-PHASE0.md` §A.1).
+
+## What this repo is NOT
+
+- It is not the Inkternity desktop app.
+- It is not the Heavymeta Portal.
+- It does not implement entitlement checks — the Phase 0 token gate lives in the Inkternity desktop app, not in the signaling server (the server stays anonymous and stateless).
+
+## Quickstart
+
+On a fresh Ubuntu 22.04 VPS with public IP and DNS pointed at it:
+
+```bash
+# 1. Set domain names in vps_startup.sh
+nano scripts/vps_startup.sh   # edit DOMAIN_SIGNAL and DOMAIN_TURN
+
+# 2. Run the bootstrap
+sudo ./scripts/vps_startup.sh
+```
+
+The script installs Docker, nginx, certbot, clones this repo, generates a TURN secret, requests Let's Encrypt certs, and brings up the compose stack. Total time: ~5–10 minutes on a fresh VPS.
+
+After it completes, point a fork of Inkternity at the new endpoints by editing its `assets/data/config/default_p2p.json`:
+
+```json
+{
+    "signalingServer": "wss://signal.heavymeta.art",
+    "stunList": ["stun.l.google.com:19302"],
+    "turnList": [
+        {
+            "url": "turn.heavymeta.art",
+            "port": 3478,
+            "username": "<your TURN username>",
+            "credential": "<your TURN secret>"
+        }
+    ]
+}
+```
+
+See `DEPLOY.md` for full deployment notes (DNS prep, firewall rules, cert renewal, monitoring).
+
+## Architecture
+
+```
+        Internet                          VPS (this repo)
+            │
+       :443 (WSS)        ┌──────────┐         ┌────────────────┐
+            ────────────►│  nginx   │────────►│   signaling    │
+                         │ (TLS,    │  :8000  │  (Python WS    │
+                         │  proxy)  │         │   relay)       │
+                         └──────────┘         └────────────────┘
+            │
+       :3478 (UDP/TCP)
+       :49152-65535 (UDP)
+            │            ┌──────────────────────────────┐
+            ────────────►│           coturn             │
+                         │  (TURN/STUN, host network)   │
+                         └──────────────────────────────┘
+```
+
+- **Signaling**: client opens WSS to `wss://signal.heavymeta.art/<globalID>`. Server is a pure relay keyed by globalID; forwards JSON `{id, type, description}` (offer/answer) and `{id, type:"candidate", candidate, mid}` (ICE candidates) between peers. No auth, no rooms, no persistence.
+- **TURN**: when direct WebRTC P2P can't punch through NAT, the client uses TURN to relay media via this server. Long-term static credentials configured per-deployment.
+
+## License
+
+MIT. See `LICENSE`.

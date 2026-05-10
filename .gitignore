@@ -1,0 +1,43 @@
+# Claude Code
+.claude/
+
+# Environment (contains secrets!)
+.env
+.env.local
+
+# Generated certs (Let's Encrypt managed outside the repo)
+certs/
+letsencrypt/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+
+# Logs
+*.log
+/var/log/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Coturn runtime data
+coturn/db/
+coturn/var/

@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  signaling:
+    build: ./signaling
+    container_name: inkternity-signaling
+    restart: unless-stopped
+    expose:
+      - "8000"
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    networks:
+      - inkternity-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  coturn:
+    image: coturn/coturn:latest
+    container_name: inkternity-coturn
+    restart: unless-stopped
+    # coturn requires host networking so it can advertise the host's public IP
+    # to peers and bind the wide UDP port range for media relays.
+    network_mode: host
+    volumes:
+      - ./coturn/turnserver.conf:/etc/coturn/turnserver.conf:ro
+      - /etc/letsencrypt/live/${DOMAIN_TURN}:/etc/coturn/certs:ro
+    command: ["-c", "/etc/coturn/turnserver.conf"]
+
+  nginx:
+    image: nginx:alpine
+    container_name: inkternity-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    depends_on:
+      signaling:
+        condition: service_healthy
+    networks:
+      - inkternity-network
+
+networks:
+  inkternity-network:
+    driver: bridge
