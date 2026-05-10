@@ -73,6 +73,25 @@ See `DEPLOY.md` for full deployment notes (DNS prep, firewall rules, cert renewa
 - **Signaling**: client opens WSS to `wss://signal.heavymeta.art/<globalID>`. Server is a pure relay keyed by globalID; forwards JSON `{id, type, description}` (offer/answer) and `{id, type:"candidate", candidate, mid}` (ICE candidates) between peers. No auth, no rooms, no persistence.
 - **TURN**: when direct WebRTC P2P can't punch through NAT, the client uses TURN to relay media via this server. Long-term static credentials configured per-deployment.
 
+## Dev tooling
+
+`scripts/dev_mint_token.py` issues valid Phase 0 access tokens locally without standing up the portal. Useful when implementing Inkternity's host-side verification (Stage 2 / P0-C work — see `infinipaint/docs/design/DISTRIBUTION-PHASE0.md`).
+
+```bash
+pip install -r scripts/requirements.txt
+
+# Generate fresh keypairs + canvas_id, save state for reuse, mint a token expiring in 1 hour
+python scripts/dev_mint_token.py --gen-keys --save-state /tmp/inkternity_dev_state.json --expires-in 3600
+
+# Mint another token using the same keys (subsequent invocations)
+python scripts/dev_mint_token.py --load-state /tmp/inkternity_dev_state.json --expires-in 3600
+
+# Verify a token's signature roundtrips against its claimed signer
+python scripts/dev_mint_token.py --verify <token-from-stdout>
+```
+
+The script mirrors the token format the portal's Stripe webhook will produce in production (sorted compact JSON payload + base64url ed25519 signature). Inkternity's host-side verifier accepts both Stellar G... and raw-hex pubkey formats; tokens minted by this script use Stellar form when `stellar-sdk` is installed.
+
 ## License
 
 MIT. See `LICENSE`.

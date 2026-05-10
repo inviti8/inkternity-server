@@ -1,0 +1,12 @@
+# Phase 0 dev tooling dependencies for the helper scripts in this dir.
+# Production deployments do not need these — only the developer mint flow
+# (dev_mint_token.py) uses them.
+
+# Ed25519 signing — required.
+pynacl>=1.5.0
+
+# Stellar address (G... / S...) encoding — optional. Without it, the dev
+# script falls back to raw hex pubkeys, which still verify correctly
+# (Inkternity's host accepts both formats), but tokens look less like
+# the production form.
+stellar-sdk>=12.0.0
