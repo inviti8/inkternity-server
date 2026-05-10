@@ -25,6 +25,7 @@ import os
 from typing import Dict
 
 import websockets
+from websockets.asyncio.server import ServerConnection
 from aiohttp import web
 
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
@@ -38,10 +39,13 @@ logging.basicConfig(
 log = logging.getLogger("signaling")
 
 # Maps globalID -> active WebSocket. One entry per connected client.
-peers: Dict[str, websockets.WebSocketServerProtocol] = {}
+peers: Dict[str, ServerConnection] = {}
 
 
-async def relay(ws: websockets.WebSocketServerProtocol, path: str) -> None:
+async def relay(ws: ServerConnection) -> None:
+    # websockets >= 14 dropped the (ws, path) handler signature in favor
+    # of (ws); the URL path lives on ws.request.path now.
+    path = ws.request.path
     # Path is /<globalID>; strip the leading slash.
     sender_id = path.lstrip("/")
     if not sender_id:
