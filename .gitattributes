@@ -1,0 +1,25 @@
+# Default: let git auto-detect text files and normalize on commit.
+* text=auto
+
+# Files that MUST be LF on the deploy target (Linux VPS). bash trips on \r,
+# coturn/nginx silently misparse some \r-bearing config lines, and Dockerfile
+# RUN steps inherit the file encoding into the build context.
+*.sh         text eol=lf
+Dockerfile   text eol=lf
+*.conf       text eol=lf
+*.yml        text eol=lf
+*.yaml       text eol=lf
+
+# Python — LF is the universal convention.
+*.py         text eol=lf
+
+# Docs / examples — readable on either OS, default text handling is fine.
+*.md         text
+*.txt        text
+.env.example text
+
+# Binary catch-alls (none in the repo today, but pre-emptive).
+*.png  binary
+*.jpg  binary
+*.gz   binary
+*.zip  binary
