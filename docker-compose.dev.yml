@@ -1,0 +1,37 @@
+# Dev overlay for the inkternity-server stack.
+#
+# Use:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up signaling
+#
+# What this changes vs the production compose file:
+#   - signaling is bound to 127.0.0.1:8000 directly (vs intra-network
+#     expose only) so Inkternity's local p2p.json — which points at
+#     ws://localhost:8000 — connects unchanged.
+#   - nginx + coturn are pushed onto a "prod-only" profile so docker
+#     compose doesn't try to start them: nginx wants Let's Encrypt
+#     certs that don't exist locally, and coturn requires a public IP
+#     to advertise + can't relay over the loopback interface anyway.
+#
+# Goal: validate the Dockerfile + signaling compose shape before
+# pushing the same files to a real VPS via vps_startup.sh. If `docker
+# compose -f ... -f docker-compose.dev.yml up signaling` works and an
+# Inkternity build connects, the production deploy will work too —
+# the only delta is TLS termination + DNS, both handled by the
+# bootstrap script.
+
+services:
+  signaling:
+    ports:
+      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8001:8001"  # health endpoint, useful for `curl localhost:8001/health`
+
+  # --- prod-only services, skipped by default in dev ----------------
+  # The `prod` profile means these services do NOT start unless you
+  # explicitly run `docker compose ... --profile prod up`. Local dev
+  # therefore never tries to mount /etc/letsencrypt or bind :443/3478.
+
+  nginx:
+    profiles: ["prod"]
+
+  coturn:
+    profiles: ["prod"]

@@ -1,18 +1,19 @@
-version: '3.8'
-
 services:
   signaling:
     build: ./signaling
     container_name: inkternity-signaling
     restart: unless-stopped
     expose:
-      - "8000"
+      - "8000"   # WebSocket signaling
+      - "8001"   # HTTP health endpoint (sibling aiohttp listener — see signaling/server.py start_health_server())
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     networks:
       - inkternity-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      # Hit port 8001 (aiohttp /health) — port 8000 is the WebSocket
+      # listener and rejects non-Upgrade requests with InvalidUpgrade.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health').read()"]
       interval: 30s
       timeout: 10s
       retries: 3

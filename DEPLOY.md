@@ -72,6 +72,27 @@ Test renewal flow manually:
 sudo certbot renew --dry-run
 ```
 
+## Local dev (no VPS, no TLS, no TURN)
+
+Validate the production-shape stack on your dev machine before pushing to a real VPS. Uses `docker-compose.dev.yml` as an overlay that:
+
+- Binds `signaling` directly to `127.0.0.1:8000` (and `:8001` for the health endpoint), so Inkternity's local `p2p.json` (`ws://localhost:8000`) connects unchanged.
+- Skips `nginx` and `coturn` via the `prod` profile — locally there are no Let's Encrypt certs to mount, and TURN can't relay over loopback anyway.
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml build signaling
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d signaling
+curl http://localhost:8001/health   # should print "ok"
+```
+
+Stop with `docker compose down`. To run the full prod-shape stack locally (with nginx + coturn), pass `--profile prod`:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile prod up -d
+```
+
+That last form requires `/etc/letsencrypt` certs and is generally only useful on the actual VPS via `vps_startup.sh`.
+
 ## Operations
 
 ```bash
