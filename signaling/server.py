@@ -29,8 +29,12 @@ from websockets.asyncio.server import ServerConnection
 from aiohttp import web
 
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
-LISTEN_HOST = "0.0.0.0"
-LISTEN_PORT = 8000
+# Defaults target Docker mode (signaling container reachable from the nginx
+# container on the same bridge network). Native systemd deployments override
+# via .env (e.g. LISTEN_HOST=127.0.0.1, LISTEN_PORT=8002) so the WS server
+# binds loopback-only and host nginx is the sole external entry point.
+LISTEN_HOST = os.environ.get("LISTEN_HOST", "0.0.0.0")
+LISTEN_PORT = int(os.environ.get("LISTEN_PORT", "8000"))
 
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL, logging.INFO),

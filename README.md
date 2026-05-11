@@ -1,6 +1,6 @@
 # Inkternity Server
 
-> Self-hosted WebRTC signaling and TURN infrastructure for the [Inkternity](https://github.com/zynx/inkternity) live-collaboration and live-distribution model.
+> Self-hosted WebRTC signaling and TURN infrastructure for the [Inkternity](https://github.com/inviti8/inkternity) live-collaboration and live-distribution model.
 
 ## What this repo is
 

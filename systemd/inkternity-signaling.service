@@ -1,0 +1,54 @@
+# Inkternity WebRTC signaling — systemd unit
+#
+# Native (non-Docker) deployment, designed to co-reside on a VPS that already
+# runs hvym_tunnler under systemd. Mirrors the layout of hvym-tunnler.service:
+#   - runs as an unprivileged user (`inkternity`)
+#   - sources its config from a single .env in the repo
+#   - restarts forever
+#
+# Install:
+#   sudo cp systemd/inkternity-signaling.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now inkternity-signaling
+#
+# Requires:
+#   /home/inkternity/inkternity-server/venv/bin/python  (venv with
+#       signaling/requirements.txt installed)
+#   /home/inkternity/inkternity-server/.env             (LISTEN_HOST=127.0.0.1,
+#       LISTEN_PORT=8002, LOG_LEVEL=INFO at minimum)
+#
+# Logs: journalctl -u inkternity-signaling -f
+
+[Unit]
+Description=Inkternity WebRTC Signaling Server
+Documentation=https://github.com/inviti8/inkternity-server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=inkternity
+Group=inkternity
+WorkingDirectory=/home/inkternity/inkternity-server/signaling
+Environment="PATH=/home/inkternity/inkternity-server/venv/bin"
+EnvironmentFile=/home/inkternity/inkternity-server/.env
+ExecStart=/home/inkternity/inkternity-server/venv/bin/python server.py
+Restart=always
+RestartSec=5
+
+# Hardening — signaling is a stateless relay, so everything can be locked down.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+RestrictRealtime=true
+LockPersonality=true
+# Loopback binds only; no need for raw sockets, no inbound traffic from internet.
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

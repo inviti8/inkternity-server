@@ -30,7 +30,7 @@ DOMAIN_TURN="turn.heavymeta.art"
 LETSENCRYPT_EMAIL="ops@heavymeta.art"
 
 # Git repo to clone
-REPO_URL="https://github.com/zynx/inkternity-server.git"
+REPO_URL="https://github.com/inviti8/inkternity-server.git"
 REPO_BRANCH="main"
 
 # Linux user that runs the stack
@@ -192,6 +192,23 @@ certbot certonly --standalone --non-interactive --agree-tos \
     -d "$DOMAIN_SIGNAL" \
     -d "$DOMAIN_TURN" \
     || { echo "certbot FAILED — verify DNS A records point at this host"; exit 1; }
+
+#-----------------------------------------------------------------------------
+# Cert renewal deploy hook
+#-----------------------------------------------------------------------------
+# Without this, certbot's auto-renewal silently updates /etc/letsencrypt/
+# but the running containers keep serving the old in-memory cert.
+# See CERT_RENEWAL.md.
+echo "=== Installing renewal deploy hook ==="
+mkdir -p /etc/letsencrypt/renewal-hooks/deploy
+cat > /etc/letsencrypt/renewal-hooks/deploy/reload-inkternity.sh <<HOOK
+#!/bin/bash
+# Inkternity Server — post-renewal hook (Docker mode)
+# Reload nginx + coturn containers so they pick up the renewed cert.
+cd ${SERVER_DIR} || exit 0
+docker compose restart nginx coturn
+HOOK
+chmod 0755 /etc/letsencrypt/renewal-hooks/deploy/reload-inkternity.sh
 
 #-----------------------------------------------------------------------------
 # Build + start the stack
