@@ -31,10 +31,10 @@ set -uo pipefail
 # CONFIGURATION — edit before first run
 #=============================================================================
 
-DOMAIN_SIGNAL="signal.heavymeta.art"
-DOMAIN_TURN="turn.heavymeta.art"
+DOMAIN_SIGNAL="signal.hvym.link"
+DOMAIN_TURN="turn.hvym.link"
 
-LETSENCRYPT_EMAIL="ops@heavymeta.art"
+LETSENCRYPT_EMAIL="support@heavymeta.art"
 
 REPO_URL="https://github.com/inviti8/inkternity-server.git"
 REPO_BRANCH="main"

@@ -23,11 +23,11 @@ set -uo pipefail
 #=============================================================================
 
 # Domains (must already have DNS A records pointing at this VPS)
-DOMAIN_SIGNAL="signal.heavymeta.art"
-DOMAIN_TURN="turn.heavymeta.art"
+DOMAIN_SIGNAL="signal.hvym.link"
+DOMAIN_TURN="turn.hvym.link"
 
 # Email for Let's Encrypt registration
-LETSENCRYPT_EMAIL="ops@heavymeta.art"
+LETSENCRYPT_EMAIL="support@heavymeta.art"
 
 # Git repo to clone
 REPO_URL="https://github.com/inviti8/inkternity-server.git"
