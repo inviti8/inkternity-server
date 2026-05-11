@@ -40,7 +40,10 @@ RestartSec=5
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
-ProtectHome=true
+# read-only (not "true") — the daemon needs to read its own venv + source
+# under /home/inkternity/. `true` would make the homedir invisible and the
+# service fails to start with "no such file or directory" on the python binary.
+ProtectHome=read-only
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
