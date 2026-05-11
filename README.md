@@ -80,17 +80,24 @@ See `DEPLOY.md` for full deployment notes (DNS prep, firewall rules, cert renewa
 ```bash
 pip install -r scripts/requirements.txt
 
-# Generate fresh keypairs + canvas_id, save state for reuse, mint a token expiring in 1 hour
-python scripts/dev_mint_token.py --gen-keys --save-state /tmp/inkternity_dev_state.json --expires-in 3600
+# After P0-C1 partial: Inkternity itself generates the app keypair on
+# first run + writes inkternity_dev_keys.json. This script tops up the
+# missing mock-portal fields (member keypair + canvas_id) and produces
+# tokens. Use --state to load + save the same path:
+python scripts/dev_mint_token.py \
+    --state "$APPDATA/ErrorAtLine0/infinipaint/inkternity_dev_keys.json" \
+    --gen-keys --expires-in 3600
 
-# Mint another token using the same keys (subsequent invocations)
-python scripts/dev_mint_token.py --load-state /tmp/inkternity_dev_state.json --expires-in 3600
+# Subsequent mints (no key regen, same canvas):
+python scripts/dev_mint_token.py \
+    --state "$APPDATA/ErrorAtLine0/infinipaint/inkternity_dev_keys.json" \
+    --expires-in 3600
 
 # Verify a token's signature roundtrips against its claimed signer
 python scripts/dev_mint_token.py --verify <token-from-stdout>
 ```
 
-The script mirrors the token format the portal's Stripe webhook will produce in production (sorted compact JSON payload + base64url ed25519 signature). Inkternity's host-side verifier accepts both Stellar G... and raw-hex pubkey formats; tokens minted by this script use Stellar form when `stellar-sdk` is installed.
+`--gen-keys` only fills MISSING fields, so it never clobbers Inkternity's locally-generated app keypair. The script mirrors the token format the portal's Stripe webhook will produce in production (sorted compact JSON payload + base64url ed25519 signature). Inkternity's host-side verifier accepts both Stellar G... and raw-hex pubkey formats; tokens minted by this script use Stellar form when `stellar-sdk` is installed.
 
 ## License
 

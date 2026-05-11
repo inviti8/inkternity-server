@@ -167,7 +167,12 @@ def main() -> None:
     )
 
     parser.add_argument("--gen-keys", action="store_true",
-                        help="Generate fresh artist member + app keypairs.")
+                        help="Generate any MISSING keypair fields. Existing fields preserved.")
+    parser.add_argument("--state", metavar="PATH",
+                        help="Shorthand for both --load-state PATH and --save-state PATH "
+                             "(read existing state, modify, write back). The common case after "
+                             "P0-C1 partial: Inkternity generates the app keypair on first run; "
+                             "this script tops it up with member keypair + canvas_id.")
     parser.add_argument("--save-state", metavar="PATH",
                         help="Save keypairs + canvas_id to PATH for later reuse.")
     parser.add_argument("--load-state", metavar="PATH",
@@ -201,15 +206,26 @@ def main() -> None:
         print(json.dumps(payload, indent=2, sort_keys=True))
         return
 
+    # Resolve --state shorthand into both --load-state and --save-state.
+    if args.state:
+        if not args.load_state: args.load_state = args.state
+        if not args.save_state: args.save_state = args.state
+
     state: dict[str, str] = {}
     if args.load_state and os.path.exists(args.load_state):
         with open(args.load_state) as f:
             state = json.load(f)
 
     if args.gen_keys:
-        state["member_secret"], state["member_pub"] = gen_member_keypair()
-        state["app_secret"],    state["app_pub"]    = gen_app_keypair()
-        if "canvas_id" not in state:
+        # Only generate fields that are missing — preserves an
+        # Inkternity-generated app keypair when present (the desktop
+        # app generates one on first run; this script complements it
+        # with the mock-portal fields member_* + canvas_id).
+        if not state.get("member_secret") or not state.get("member_pub"):
+            state["member_secret"], state["member_pub"] = gen_member_keypair()
+        if not state.get("app_secret") or not state.get("app_pub"):
+            state["app_secret"], state["app_pub"] = gen_app_keypair()
+        if not state.get("canvas_id"):
             state["canvas_id"] = str(uuid.uuid4())
 
     # Explicit overrides
