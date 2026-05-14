@@ -26,7 +26,7 @@ already on the host.
 |---|---|---|
 | VPS | Ubuntu 22.04, ≥ 1 vCPU / 1 GiB RAM / 25 GiB SSD | $5–10/mo class works. Tested target. |
 | Public IPv4 | Yes | IPv6 is fine to add but not required for either deploy path. |
-| DNS A records | `signal.heavymeta.art` → VPS IP; `turn.heavymeta.art` → VPS IP | Must propagate **before** running the bootstrap (HTTP-01 challenge fails otherwise). |
+| DNS A records | `signal.hvym.link` → VPS IP; `turn.hvym.link` → VPS IP | Must propagate **before** running the bootstrap (HTTP-01 challenge fails otherwise). |
 | Email | One mailbox for Let's Encrypt registration | Used for expiry notifications. |
 | Root SSH | `sudo` access to the host | Bootstrap scripts must run as root. |
 | Existing services | Note whether hvym_tunnler is already deployed | Drives the mode selection. Native co-resides; Docker does not. |
@@ -56,9 +56,9 @@ nano scripts/vps_startup.sh
 Set the four CONFIG variables at the top:
 
 ```bash
-DOMAIN_SIGNAL="signal.heavymeta.art"
-DOMAIN_TURN="turn.heavymeta.art"
-LETSENCRYPT_EMAIL="ops@heavymeta.art"
+DOMAIN_SIGNAL="signal.hvym.link"
+DOMAIN_TURN="turn.hvym.link"
+LETSENCRYPT_EMAIL="support@heavymeta.art"
 REPO_URL="https://github.com/inviti8/inkternity-server.git"
 ```
 
@@ -96,7 +96,7 @@ new infrastructure" below).
 docker compose ps
 # Expect three services: signaling, nginx, coturn — all Up.
 
-curl https://signal.heavymeta.art/health
+curl https://signal.hvym.link/health
 # Expect: ok
 ```
 
@@ -195,11 +195,11 @@ systemctl is-active coturn               && echo "coturn:    OK" || echo "coturn
 systemctl is-active nginx                && echo "nginx:     OK" || echo "nginx:     FAILED"
 
 # Health endpoint
-curl https://signal.heavymeta.art/health
+curl https://signal.hvym.link/health
 # Expect: ok
 
 # WS handshake (optional — needs websocat)
-websocat wss://signal.heavymeta.art/test
+websocat wss://signal.hvym.link/test
 # Expect: connection opens, server logs: "connected id=test (active=1)"
 ```
 
@@ -234,7 +234,7 @@ on Linux Flatpak; `$APPDATA/ErrorAtLine0/infinipaint/` on Windows):
 
 ```json
 {
-    "signalingServer": "wss://signal.heavymeta.art",
+    "signalingServer": "wss://signal.hvym.link",
     "stunList": [
         "stun.l.google.com:19302",
         "stun1.l.google.com:19302",
@@ -244,7 +244,7 @@ on Linux Flatpak; `$APPDATA/ErrorAtLine0/infinipaint/` on Windows):
     ],
     "turnList": [
         {
-            "url": "turn.heavymeta.art",
+            "url": "turn.hvym.link",
             "port": 3478,
             "username": "inkternity",
             "credential": "<TURN_SECRET from .env>"
@@ -330,7 +330,7 @@ sudo systemctl list-timers certbot.timer
 The HTTP-01 (or webroot) challenge couldn't reach the VPS. Most common
 causes:
 
-1. **DNS hasn't propagated.** `dig +short signal.heavymeta.art` from
+1. **DNS hasn't propagated.** `dig +short signal.hvym.link` from
    somewhere other than your laptop. If empty or wrong, wait for TTL.
 2. **Provider firewall blocks :80.** Check the provider dashboard.
 3. **Native mode, no hvym, nginx not stopped.** If running native mode
@@ -375,9 +375,9 @@ Look for:
 
 ```bash
 # Confirm the TLS terminator is reachable
-curl -v https://signal.heavymeta.art/health
+curl -v https://signal.hvym.link/health
 # Confirm the WS endpoint accepts upgrades
-websocat -v wss://signal.heavymeta.art/test
+websocat -v wss://signal.hvym.link/test
 ```
 
 If TLS works but WS doesn't, check the nginx upstream and that the
@@ -396,7 +396,7 @@ Read this if you're deploying to a VPS that already runs hvym_tunnler.
 
 - **Use native mode.** Docker mode's nginx container will collide on
   :80/:443 with hvym's host nginx.
-- **DNS subdomains are unrelated.** `signal.heavymeta.art` is unrelated
+- **DNS subdomains are unrelated.** `signal.hvym.link` is unrelated
   to `tunnel.hvym.link`. Both point at the same VPS but they're
   served by distinct nginx server blocks, distinct certs.
 - **The bootstrap will NOT reset ufw.** It only adds the TURN-specific

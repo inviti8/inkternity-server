@@ -10,7 +10,7 @@ The two stock pieces Inkternity needs to run a P2P session over WebRTC, packaged
 - **TURN server** — stock [`coturn`](https://github.com/coturn/coturn). Used as a fallback when direct peer-to-peer NAT traversal fails.
 - **nginx** — TLS termination for the WSS signaling endpoint (Let's Encrypt via certbot).
 
-Drop-in replacement for `wss://signalserver.infinipaint.com:8000` and `turn.infinipaint.com:3478`. Also the foundation HEAVYMETA's Inkternity Phase 0 distribution model deploys (see `infinipaint/docs/design/DISTRIBUTION-PHASE0.md` §A.1).
+Deployed live for HEAVYMETA's Inkternity Phase 0 distribution model at `wss://signal.hvym.link` (signaling) and `turn.hvym.link:3478` (TURN). See `infinipaint/docs/design/DISTRIBUTION-PHASE0.md` §A.1 for the full design.
 
 ## What this repo is NOT
 
@@ -36,11 +36,11 @@ After it completes, point a fork of Inkternity at the new endpoints by editing i
 
 ```json
 {
-    "signalingServer": "wss://signal.heavymeta.art",
+    "signalingServer": "wss://signal.hvym.link",
     "stunList": ["stun.l.google.com:19302"],
     "turnList": [
         {
-            "url": "turn.heavymeta.art",
+            "url": "turn.hvym.link",
             "port": 3478,
             "username": "<your TURN username>",
             "credential": "<your TURN secret>"
@@ -70,7 +70,7 @@ See `DEPLOY.md` for full deployment notes (DNS prep, firewall rules, cert renewa
                          └──────────────────────────────┘
 ```
 
-- **Signaling**: client opens WSS to `wss://signal.heavymeta.art/<globalID>`. Server is a pure relay keyed by globalID; forwards JSON `{id, type, description}` (offer/answer) and `{id, type:"candidate", candidate, mid}` (ICE candidates) between peers. No auth, no rooms, no persistence.
+- **Signaling**: client opens WSS to `wss://signal.hvym.link/<globalID>`. Server is a pure relay keyed by globalID; forwards JSON `{id, type, description}` (offer/answer) and `{id, type:"candidate", candidate, mid}` (ICE candidates) between peers. No auth, no rooms, no persistence.
 - **TURN**: when direct WebRTC P2P can't punch through NAT, the client uses TURN to relay media via this server. Long-term static credentials configured per-deployment.
 
 ## Dev tooling

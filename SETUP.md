@@ -172,7 +172,7 @@ this script use Stellar form when `stellar-sdk` is installed.
 Both configs use templated placeholders that the deploy script substitutes:
 
 - `nginx/nginx.conf` and `nginx/inkternity-signaling.conf` use
-  `signal.heavymeta.art` as the sentinel domain.
+  `signal.hvym.link` as the sentinel domain.
 - `coturn/turnserver.conf` uses `__TURN_USERNAME__`, `__TURN_SECRET__`,
   `__TURN_REALM__`.
 

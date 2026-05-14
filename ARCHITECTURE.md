@@ -89,7 +89,7 @@ invented here.
 **Connection:**
 
 ```
-wss://signal.heavymeta.art/<globalID>
+wss://signal.hvym.link/<globalID>
 ```
 
 The URL path component IS the connecting client's globalID — a 40-character
@@ -132,7 +132,7 @@ native mode) serves a single endpoint:
 GET /health  →  200 OK, body "ok\n"
 ```
 
-nginx proxies `signal.heavymeta.art/health` to this listener so external
+nginx proxies `signal.hvym.link/health` to this listener so external
 monitoring (uptime checks, load balancers, the hvym_tunnler co-resident
 deploy script's pre-flight) can hit it over HTTPS without speaking
 WebSocket. There is deliberately no `/health` route on the WebSocket
@@ -154,7 +154,7 @@ The repo supports two operationally distinct shapes; pick one per VPS.
 | Best for | Single-tenant VPS dedicated to Inkternity | VPS already running hvym_tunnler or another nginx-fronted service |
 
 Both modes produce functionally identical externals: WSS on
-`signal.heavymeta.art:443`, TURN on `turn.heavymeta.art:3478`, the same
+`signal.hvym.link:443`, TURN on `turn.hvym.link:3478`, the same
 TURN secret in `.env`, the same Let's Encrypt certs. Switching between
 them is non-trivial (different process supervisors, different cert
 paths in nginx config) but supported.
@@ -172,9 +172,9 @@ when an Inkternity user shares a canvas:
    1. starts Inkternity, opens a canvas.
    2. NetLibrary::init() reads default_p2p.json,
       generates globalID (40 hex chars).
-   3. opens WSS to signal.heavymeta.art/<artist-globalID>.
+   3. opens WSS to signal.hvym.link/<artist-globalID>.
                                                    4. starts Inkternity, joins lobby.
-                                                   5. opens WSS to signal.heavymeta.art/<sub-globalID>.
+                                                   5. opens WSS to signal.hvym.link/<sub-globalID>.
                                                    6. sends {id: artist-globalID, type: "offer", description: <SDP>}.
    7. server forwards to artist's socket
       with id rewritten to <sub-globalID>.

@@ -1,7 +1,7 @@
 # Inkternity Server — Cert Renewal
 
 Mechanics of Let's Encrypt certificate renewal for the
-`signal.heavymeta.art` (and optionally `turn.heavymeta.art`) certs. If
+`signal.hvym.link` (and optionally `turn.hvym.link`) certs. If
 you only want "does renewal work?" — run `sudo certbot renew --dry-run`
 and stop reading. If you want to understand what happens, why it can
 silently break, and how to verify it after a reboot or upgrade, read on.
@@ -94,7 +94,7 @@ Expected last lines:
 
 ```
 Congratulations, all simulated renewals succeeded:
-  /etc/letsencrypt/live/signal.heavymeta.art/fullchain.pem (success)
+  /etc/letsencrypt/live/signal.hvym.link/fullchain.pem (success)
 ```
 
 If you see `Challenge failed` or `Connection refused`, the renewal path
@@ -184,11 +184,11 @@ records which authenticator was used. Don't hand-edit it.
 
 ## 6. When renewal fails
 
-### `Challenge failed for domain signal.heavymeta.art`
+### `Challenge failed for domain signal.hvym.link`
 
 Let's Encrypt couldn't reach the challenge URL. Causes:
 
-1. **DNS changed.** A record no longer points at this VPS. `dig +short signal.heavymeta.art`.
+1. **DNS changed.** A record no longer points at this VPS. `dig +short signal.hvym.link`.
 2. **Firewall blocking :80.** UFW or provider firewall. `ufw status` /
    provider dashboard.
 3. **nginx config drifted.** Webroot mode: confirm the `/.well-known/acme-challenge/`
@@ -202,7 +202,7 @@ Reproduce in isolation:
 # Write a test file to the webroot
 sudo bash -c 'echo "test" > /var/www/acme/test'
 # Hit it via the public URL
-curl -i http://signal.heavymeta.art/.well-known/acme-challenge/test
+curl -i http://signal.hvym.link/.well-known/acme-challenge/test
 # Expect: 200 OK, body "test"
 sudo rm /var/www/acme/test
 ```
@@ -227,10 +227,10 @@ Deploy hook didn't run, or it ran but the reload failed silently. Check:
 
 ```bash
 journalctl --since "1 hour ago" | grep -i certbot
-ls -l /etc/letsencrypt/live/signal.heavymeta.art/
+ls -l /etc/letsencrypt/live/signal.hvym.link/
 # Inspect the cert nginx is actually serving:
-echo | openssl s_client -servername signal.heavymeta.art \
-    -connect signal.heavymeta.art:443 2>/dev/null \
+echo | openssl s_client -servername signal.hvym.link \
+    -connect signal.hvym.link:443 2>/dev/null \
     | openssl x509 -noout -dates
 ```
 
@@ -249,7 +249,7 @@ recover:
 ```bash
 # Native mode
 sudo certbot certonly --webroot -w /var/www/acme --force-renewal \
-    -d signal.heavymeta.art -d turn.heavymeta.art
+    -d signal.hvym.link -d turn.hvym.link
 sudo systemctl reload nginx
 sudo systemctl restart coturn
 
@@ -257,7 +257,7 @@ sudo systemctl restart coturn
 cd /home/inkternity/inkternity-server
 sudo docker compose stop nginx
 sudo certbot certonly --standalone --force-renewal \
-    -d signal.heavymeta.art -d turn.heavymeta.art
+    -d signal.hvym.link -d turn.hvym.link
 sudo docker compose up -d nginx coturn
 ```
 
@@ -292,7 +292,7 @@ To activate TURNS:
 4. Open port 5349/TCP in ufw and provider firewall.
 5. Add a TURNS entry to Inkternity's `default_p2p.json`:
    ```json
-   {"url": "turns:turn.heavymeta.art", "port": 5349, ...}
+   {"url": "turns:turn.hvym.link", "port": 5349, ...}
    ```
 
 The renewal flow is the same — certbot renews; the deploy hook
@@ -321,7 +321,7 @@ You should never need this — the timer + deploy hook is fully
 unattended. But if for some reason you want to force a renewal *right now*:
 
 ```bash
-sudo certbot renew --force-renewal -d signal.heavymeta.art -d turn.heavymeta.art
+sudo certbot renew --force-renewal -d signal.hvym.link -d turn.hvym.link
 ```
 
 `--force-renewal` skips the 30-days-remaining heuristic. The deploy

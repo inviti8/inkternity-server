@@ -8,8 +8,8 @@ catch the cases where it doesn't.
 
 Production domains:
 
-- `signal.heavymeta.art` — signaling (WSS)
-- `turn.heavymeta.art` — coturn (TURN/STUN)
+- `signal.hvym.link` — signaling (WSS)
+- `turn.hvym.link` — coturn (TURN/STUN)
 
 There are two layers of checks:
 
@@ -30,7 +30,7 @@ No auth required; all endpoints are public.
 ### 1.1 Signaling health
 
 ```bash
-curl -s https://signal.heavymeta.art/health
+curl -s https://signal.hvym.link/health
 # Expected: ok
 ```
 
@@ -41,8 +41,8 @@ DNS.
 ### 1.2 TLS certificate validity
 
 ```bash
-echo | openssl s_client -servername signal.heavymeta.art \
-    -connect signal.heavymeta.art:443 2>/dev/null \
+echo | openssl s_client -servername signal.hvym.link \
+    -connect signal.hvym.link:443 2>/dev/null \
     | openssl x509 -noout -dates -subject
 ```
 
@@ -51,7 +51,7 @@ Expected:
 ```
 notBefore=…
 notAfter=…           # at least 30 days in the future
-subject=CN = signal.heavymeta.art
+subject=CN = signal.hvym.link
 ```
 
 `notAfter` within the next 30 days means cert renewal hasn't been
@@ -60,7 +60,7 @@ fixing things — see `CERT_RENEWAL.md`.
 ### 1.3 Security headers
 
 ```bash
-curl -sI https://signal.heavymeta.art/health \
+curl -sI https://signal.hvym.link/health \
     | grep -iE 'strict-transport-security|x-frame-options|x-content-type-options'
 ```
 
@@ -73,7 +73,7 @@ these headers; that's a known gap and not blocking.)
 
 ```bash
 # Needs websocat: cargo install websocat, or apt install websocat
-websocat -v wss://signal.heavymeta.art/_reboot_smoke_test
+websocat -v wss://signal.hvym.link/_reboot_smoke_test
 # Expected: connection opens. Type Ctrl-C to disconnect.
 ```
 
@@ -86,11 +86,11 @@ upstream to the signaling daemon.
 ```bash
 # STUN port: should respond to any UDP packet with a binding response.
 # Quick smoke test with netcat:
-echo | nc -u -w 2 turn.heavymeta.art 3478
+echo | nc -u -w 2 turn.hvym.link 3478
 # nc will exit silently after 2s if coturn responds, or hang/error otherwise.
 
 # Better: use a STUN client like stuntman's `stunclient`:
-stunclient turn.heavymeta.art 3478
+stunclient turn.hvym.link 3478
 # Expected: "Binding test: success" + your public IP.
 ```
 
@@ -332,7 +332,7 @@ Look for:
 
 ```bash
 # Confirm certs are still on disk
-sudo ls -la /etc/letsencrypt/live/signal.heavymeta.art/
+sudo ls -la /etc/letsencrypt/live/signal.hvym.link/
 
 # Confirm nginx is reading them
 sudo nginx -T 2>/dev/null | grep -A1 ssl_certificate
@@ -351,9 +351,9 @@ every planned reboot:
 
 ```bash
 # Remote, from your laptop:
-curl -s https://signal.heavymeta.art/health \
-    && echo | openssl s_client -servername signal.heavymeta.art \
-       -connect signal.heavymeta.art:443 2>/dev/null \
+curl -s https://signal.hvym.link/health \
+    && echo | openssl s_client -servername signal.hvym.link \
+       -connect signal.hvym.link:443 2>/dev/null \
        | openssl x509 -noout -dates
 
 # On the VPS:
